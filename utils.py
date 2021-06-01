@@ -29,9 +29,9 @@ async def gather_all_results(query_result_list: List[QueryResult]) -> dict:
 
         for done_task in done:
             json_total_results[done_task.get_name()] = []
+            print(f'### Query id {done_task.get_name()} results ###')
 
             for row in done_task.result():
-                print(f'### Query id {done_task.get_name()} results ###')
                 print(row)
                 json_total_results[done_task.get_name()].append(str(row))
 

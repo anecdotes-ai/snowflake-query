@@ -15,13 +15,12 @@ jobs:
         id: run_queries
         with:
           snowflake_account: ${{ secrets.SNOWFLAKE_ACCOUNT }}
-          snowflake_warehouse: GLOBAL_DEV
+          snowflake_warehouse: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
           snowflake_username: ${{ secrets.SNOWFLAKE_USER }}
           snowflake_password: ${{ secrets.SNOWFLAKE_PASSWORD }}
           queries: 'call system$wait(1);
                     select CURRENT_VERSION();
-                    select CURRENT_CLIENT();
-                    select * from "C_02485DB6060D45F3B8FE5E4C9950C5F1"."PUBLIC"."EVIDENCE" where EVIDENCE_ID=''1332814785'''
+                    select CURRENT_CLIENT()'
       
       # Validations
       - name: Version ${{env.DB_VERSION}} Validation
