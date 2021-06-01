@@ -55,4 +55,4 @@ jobs:
 
       - name: Waiting Query Validation
         run: |
-          ${{contains(steps.run_queries.outputs.queries_results, 'waited matrix.sleep seconds')}}
+          ${{contains(steps.run_queries.outputs.queries_results, 'waited ${{matrix.sleep}} seconds')}}
