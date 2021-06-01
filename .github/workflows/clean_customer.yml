@@ -1,0 +1,27 @@
+on: workflow_dispatch
+
+jobs:
+  test_version:
+    runs-on: ubuntu-latest
+    name: Test Function Queries
+    env:
+      CUSTOMER_ID: XXX
+    strategy:
+      matrix: 
+        table: ['APLICABILITY', 'AUDITS', 'CONTROLS',
+                'CUSTOMER_CONTROL', 'CUSTOMER_EVIDENCE',
+                'CUSTOMER_REQUIREMENT', 'EVIDENCE ','EVIDENCE_CONTROL_MAP',
+                'EVIDENCE_METADATA', 'MESSAGES']
+    steps:
+      # Run Queries
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Run Clean Queries
+        uses: ./
+        id: run_clean_queries
+        with:
+          snowflake_account: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          snowflake_warehouse: GLOBAL_DEV
+          snowflake_user: ${{ secrets.SNOWFLAKE_USER }}
+          snowflake_password: ${{ secrets.SNOWFLAKE_PASSWORD }}
+          queries: 'DELETE FROM  "${{CUSTOMER_ID}}"."PUBLIC"."${{matrix.table}}"'

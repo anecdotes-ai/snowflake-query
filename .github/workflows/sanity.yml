@@ -1,0 +1,35 @@
+on: [push]
+
+jobs:
+  test_version:
+    runs-on: ubuntu-latest
+    name: Test Function Queries
+    env:
+      DB_VERSION: '5.20.1'
+    steps:
+      # Run Queries
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Run Queries
+        uses: ./
+        id: run_queries
+        with:
+          snowflake_account: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          snowflake_warehouse: GLOBAL_DEV
+          snowflake_username: ${{ secrets.SNOWFLAKE_USER }}
+          snowflake_password: ${{ secrets.SNOWFLAKE_PASSWORD }}
+          queries: 'call system$wait(1);
+                    select CURRENT_VERSION();
+                    select CURRENT_CLIENT();
+                    select * from "C_02485DB6060D45F3B8FE5E4C9950C5F1"."PUBLIC"."EVIDENCE" where EVIDENCE_ID=''1332814785'''
+      
+      # Validations
+      - name: Version ${{env.DB_VERSION}} Validation
+        run: |
+          ${{contains(steps.run_queries.outputs.queries_results, env.DB_VERSION)}}
+      - name: Query Client validation
+        run: |
+          ${{contains(steps.run_queries.outputs.queries_results, 'PythonConnector')}}
+      - name: Waiting Query Validation
+        run: |
+          ${{contains(steps.run_queries.outputs.queries_results, 'waited 1 seconds')}}
