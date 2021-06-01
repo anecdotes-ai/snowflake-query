@@ -1,5 +1,7 @@
 # Snowflake-query
 
+![Sanity Workflow](https://github.com/anecdotes-ai/snowflake-query/actions/workflows/sanity.yml/badge.svg)
+
 This github action runs SQL queries list in Snowflake DB, which its access configuration is defined in the workflow.
 
 ## Inputs
