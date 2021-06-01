@@ -3,6 +3,7 @@ import asyncio
 import snowflake.connector
 
 from snowflake.connector.constants import QueryStatus
+
 class SnowflakeConnector:
     def __init__(self, account_name: str, username: str, password: str):
         self.account_name = account_name
