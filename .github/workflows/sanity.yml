@@ -1,4 +1,5 @@
-on: [push]
+name: Sanity Tests
+on: push
 
 jobs:
   test_multiple_queries:
