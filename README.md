@@ -1,8 +1,8 @@
 # Snowflake-query
 
 ![last tag](https://img.shields.io/github/v/tag/anecdotes-ai/snowflake-query?color=brightgreen&label=release&logo=github)
-
 ![Sanity Workflow](https://github.com/anecdotes-ai/snowflake-query/actions/workflows/sanity.yml/badge.svg)
+![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 This github action runs SQL queries list in Snowflake DB, which its access configuration is defined in the workflow.
 
