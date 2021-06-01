@@ -1,0 +1,59 @@
+name: Sanity Tests
+on: push
+
+jobs:
+  test_multiple_queries:
+    runs-on: ubuntu-latest
+    name: Test Function Multiple Queries
+    env:
+      DB_VERSION: '5.20.1'
+    steps:
+      # Run Queries
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Run Queries
+        uses: ./
+        id: run_queries
+        with:
+          snowflake_account: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          snowflake_warehouse: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+          snowflake_username: ${{ secrets.SNOWFLAKE_USER }}
+          snowflake_password: ${{ secrets.SNOWFLAKE_PASSWORD }}
+          queries: 'call system$wait(1);
+                    select CURRENT_VERSION();
+                    select CURRENT_CLIENT()'
+      
+      # Validations
+      - name: Version ${{env.DB_VERSION}} Validation
+        run: |
+          ${{contains(steps.run_queries.outputs.queries_results, env.DB_VERSION)}}
+      - name: Query Client validation
+        run: |
+          ${{contains(steps.run_queries.outputs.queries_results, 'PythonConnector')}}
+      - name: Waiting Query Validation
+        run: |
+          ${{contains(steps.run_queries.outputs.queries_results, 'waited 1 seconds')}}
+
+  test_matrix_query:
+    runs-on: ubuntu-latest
+    name: Test Matrix Multiple Queries
+    strategy:
+      matrix: 
+        sleep: [1, 2, 3]
+    steps:
+      # Run Queries
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+      - name: Run Queries
+        uses: ./
+        id: run_queries
+        with:
+          snowflake_account: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+          snowflake_warehouse: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+          snowflake_username: ${{ secrets.SNOWFLAKE_USER }}
+          snowflake_password: ${{ secrets.SNOWFLAKE_PASSWORD }}
+          queries: 'call system$wait(${{matrix.sleep}})'
+
+      - name: Waiting Query Validation
+        run: |
+          ${{contains(steps.run_queries.outputs.queries_results, format('waited {0} seconds', matrix.sleep))}}

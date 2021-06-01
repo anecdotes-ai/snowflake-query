@@ -1,0 +1,32 @@
+name: 'Snowflake Query Action'
+author: 'anecdotes.ai'
+description: 'This action lets running a list of SQL queries on your Snowflake DB.'
+
+branding:
+  icon: 'database'
+  color: 'blue'
+
+inputs:
+  snowflake_username:
+    description: 'Username for Snowflake DB'
+    required: true
+  snowflake_password:
+    description: 'Password for Snowflake DB'
+    required: true
+  snowflake_account:
+    description: 'Account name for Snowflake DB. Your account name is the full/entire string to the left of snowflakecomputing.com.'
+    required: true
+  snowflake_warehouse:
+    description: 'Warehouse as context'
+    required: true
+  queries:
+    description: 'List of SQL queries, seperated by ;'
+    required: true
+
+outputs:
+  queries_results:
+    description: 'Json encoded as base64, containing all queries results'
+    
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
