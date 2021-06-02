@@ -6,7 +6,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Test Function Multiple Queries
     env:
-      DB_VERSION: '5.20.1'
+      DB_VERSION: '5.21.1'
     steps:
       # Run Queries
       - name: Checkout Repository
