@@ -19,7 +19,7 @@ async def gather_all_results(query_result_list: List[QueryResult]) -> dict:
     Returns:
         str: json contains all of the results.
     """    
-    running_tasks = {asyncio.create_task(query_result.fetch_results_async(), name=query_result.query_id)
+    running_tasks = {asyncio.create_task(query_result.fetch_results(), name=query_result.query_id)
                                      for query_result in query_result_list}
 
     json_total_results = {}
