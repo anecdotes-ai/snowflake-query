@@ -14,9 +14,14 @@ async def main():
     snowflake_account = os.environ['INPUT_SNOWFLAKE_ACCOUNT']
     snowflake_username = os.environ['INPUT_SNOWFLAKE_USERNAME']
     snowflake_password = os.environ['INPUT_SNOWFLAKE_PASSWORD']
+
+    snowflake_role = os.environ.get('INPUT_SNOWFLAKE_ROLE')
     
     with SnowflakeConnector(snowflake_account, snowflake_username, snowflake_password) as con:
         con.set_db_warehouse(warehouse)
+        
+        if snowflake_role is not None:
+            con.set_user_role(snowflake_role)
 
         query_results = []
         for query in queries_list:

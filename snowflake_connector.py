@@ -22,7 +22,12 @@ class SnowflakeConnector:
         self.con.close()
 
     def set_db_warehouse(self, warehouse: str):
-        return self.query(f'USE WAREHOUSE {warehouse}')
+        results = self.query(f'USE WAREHOUSE {warehouse}')
+        return asyncio.run(results.fetch_results())
+    
+    def set_user_role(self, role: str):
+        results = self.query(f'USE ROLE {role}')
+        return asyncio.run(results.fetch_results())
 
     def query(self, query_str: str):
         cursor = self.con.cursor()
@@ -51,7 +56,7 @@ class QueryResult:
             yield row
             row = self.cursor.fetchone()
 
-    async def fetch_results_async(self):
+    async def fetch_results(self):
         while self.is_query_running():
             await asyncio.sleep(0.1)
         
