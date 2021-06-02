@@ -18,10 +18,11 @@ def main():
     snowflake_role = os.environ.get('INPUT_SNOWFLAKE_ROLE')
     
     with SnowflakeConnector(snowflake_account, snowflake_username, snowflake_password) as con:
-        print(snowflake_role)
-        print(snowflake_role is None)
-        if snowflake_role is not None:
-            con.set_user_role(snowflake_role)
+        try:
+            if snowflake_role is not None and snowflake_role != '':
+                con.set_user_role(snowflake_role)
+        except:
+            pass
         
         con.set_db_warehouse(warehouse)
 
