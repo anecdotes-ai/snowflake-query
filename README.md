@@ -61,7 +61,7 @@ steps:
     with:
       snowflake_account: ${{ secrets.SNOWFLAKE_ACCOUNT }}
       snowflake_warehouse: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
-      snowflake_user: ${{ secrets.SNOWFLAKE_USER }}
+      snowflake_username: ${{ secrets.SNOWFLAKE_USER }}
       snowflake_password: ${{ secrets.SNOWFLAKE_PASSWORD }}
       queries: 'DELETE FROM  "${{matrix.table}}"'
 ```
