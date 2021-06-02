@@ -49,6 +49,10 @@ class QueryResult:
                 self.con.get_query_status(self.query_id) == QueryStatus.NO_DATA)
 
     def _fetch_results(self):
+        """
+        Raises ProgrammingError in case of SQL error,
+        by get_results_from_sfqid
+        """        
         self.cursor.get_results_from_sfqid(self.query_id)
 
         row = self.cursor.fetchone()
@@ -59,8 +63,5 @@ class QueryResult:
     async def fetch_results(self):
         while self.is_query_running():
             await asyncio.sleep(0.1)
-        
-        if not self.is_query_done_successfully():
-            raise Exception("Error in query")
 
         return self._fetch_results()

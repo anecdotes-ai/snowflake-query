@@ -14,12 +14,11 @@ def main():
     snowflake_account = os.environ['INPUT_SNOWFLAKE_ACCOUNT']
     snowflake_username = os.environ['INPUT_SNOWFLAKE_USERNAME']
     snowflake_password = os.environ['INPUT_SNOWFLAKE_PASSWORD']
-
-    snowflake_role = os.environ.get('INPUT_SNOWFLAKE_ROLE')
+    snowflake_role = os.environ.get('INPUT_SNOWFLAKE_ROLE', '')
     
     with SnowflakeConnector(snowflake_account, snowflake_username, snowflake_password) as con:
         try:
-            if snowflake_role is not None and snowflake_role != '':
+            if snowflake_role != '':
                 con.set_user_role(snowflake_role)
         except:
             pass
