@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import utils
 from snowflake_connector import SnowflakeConnector
 
-async def main():
+def main():
     load_dotenv() # only on local run
     queries_list = os.environ['INPUT_QUERIES'].split(';')
     warehouse = os.environ['INPUT_SNOWFLAKE_WAREHOUSE']
@@ -31,9 +31,9 @@ async def main():
             print(f"[!] Query id - {query_result.query_id}")
             print(f"[!] Running query ### - {query}")
 
-        json_results = await utils.gather_all_results(query_results)
+        json_results = asyncio.run(utils.gather_all_results(query_results))
 
     utils.set_github_action_output('queries_results', json.dumps(json_results))
     
 if __name__ == '__main__':
-    asyncio.run(main())
+    main()
