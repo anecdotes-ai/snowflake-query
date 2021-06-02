@@ -5,8 +5,6 @@ jobs:
   test_multiple_queries:
     runs-on: ubuntu-latest
     name: Test Function Multiple Queries
-    env:
-      DB_VERSION: '5.21.1'
     steps:
       # Run Queries
       - name: Checkout Repository
@@ -24,9 +22,6 @@ jobs:
                     select CURRENT_CLIENT()'
       
       # Validations
-      - name: Version ${{env.DB_VERSION}} Validation
-        run: |
-          ${{contains(steps.run_queries.outputs.queries_results, env.DB_VERSION)}}
       - name: Query Client validation
         run: |
           ${{contains(steps.run_queries.outputs.queries_results, 'PythonConnector')}}
