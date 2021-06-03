@@ -13,7 +13,7 @@ This github action runs SQL queries list in Snowflake DB, which its access confi
 - `snowflake_username`, `snowflake_password` - Credentials for your DB.
   - It's recommended to use [Github's Secrets](https://docs.github.com/en/actions/reference/encrypted-secrets) for those arguments.
 - `snowflake_role` (optional) - Set a role for the user.
-- `queries` - SQL queries to execute **asynchronously and independently **.
+- `queries` - SQL queries to execute **asynchronously and independently**.
   - May contain multiple queries, seperated by ';'
   - If you need to contain a single-quote in one or more queries, escape it with another single-quote.
 
