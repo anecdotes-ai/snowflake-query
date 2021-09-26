@@ -36,3 +36,18 @@ async def gather_all_results(query_result_list: List[QueryResult]) -> dict:
                 json_total_results[done_task.get_name()].append(str(row))
 
     return json_total_results
+
+
+def gather_all_results_sync(query_results_list: List[QueryResult]) -> dict:
+    """
+
+    Args:
+        query_results_list:
+
+    Returns:
+
+    """
+    json_total_results = {}
+    for query in query_results_list:
+        json_total_results[query.query_id] = query.fetch_results_sync()
+    return json_total_results

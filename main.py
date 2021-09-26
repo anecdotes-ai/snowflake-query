@@ -10,6 +10,7 @@ from snowflake_connector import SnowflakeConnector
 def main():
     load_dotenv() # only on local run
     queries_list = os.environ['INPUT_QUERIES'].split(';')
+    sync = os.environ.get("INPUT_SYNC", False)
     warehouse = os.environ['INPUT_SNOWFLAKE_WAREHOUSE']
     snowflake_account = os.environ['INPUT_SNOWFLAKE_ACCOUNT']
     snowflake_username = os.environ['INPUT_SNOWFLAKE_USERNAME']
@@ -33,7 +34,10 @@ def main():
             print(f"[!] Query id - {query_result.query_id}")
             print(f"[!] Running query ### - {query}")
 
-        json_results = asyncio.run(utils.gather_all_results(query_results))
+        if not sync:
+            json_results = asyncio.run(utils.gather_all_results(query_results))
+        else:
+            json_results = utils.gather_all_results_sync(query_results)
 
     utils.set_github_action_output('queries_results', json.dumps(json_results))
     
