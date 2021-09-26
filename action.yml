@@ -25,6 +25,9 @@ inputs:
   queries:
     description: 'List of SQL queries, seperated by ;'
     required: true
+  sync:
+    description: 'Whether to run the queries sync (default is async)'
+    required: false
 
 outputs:
   queries_results:

@@ -9,7 +9,9 @@ from snowflake_connector import SnowflakeConnector
 
 def main():
     load_dotenv() # only on local run
+    print(os.environ)
     queries_list = os.environ['INPUT_QUERIES'].split(';')
+    sync = os.environ.get("INPUT_SYNC", False)
     warehouse = os.environ['INPUT_SNOWFLAKE_WAREHOUSE']
     snowflake_account = os.environ['INPUT_SNOWFLAKE_ACCOUNT']
     snowflake_username = os.environ['INPUT_SNOWFLAKE_USERNAME']
@@ -26,16 +28,27 @@ def main():
         con.set_db_warehouse(warehouse)
 
         query_results = []
-        for query in queries_list:
-            query_result = con.query(query)
-            query_results.append(query_result)
-            print("### Running query ###")
-            print(f"[!] Query id - {query_result.query_id}")
-            print(f"[!] Running query ### - {query}")
-
-        json_results = asyncio.run(utils.gather_all_results(query_results))
+        # default, run all queries async
+        if not sync:
+            for query in queries_list:
+                query_result = con.query(query)
+                query_results.append(query_result)
+                print("### Running query ###")
+                print(f"[!] Query id - {query_result.query_id}")
+                print(f"[!] Running query ### - {query}")
+            json_results = asyncio.run(utils.gather_all_results(query_results))
+        # o/w, run them sync
+        else:
+            json_results = {}
+            for query in queries_list:
+                query_result = con.query(query)
+                print("### Running query ###")
+                print(f"[!] Query id - {query_result.query_id}")
+                print(f"[!] Running query ### - {query}")
+                json_results[query_result.query_id] = query_result.fetch_results_sync()
 
     utils.set_github_action_output('queries_results', json.dumps(json_results))
-    
+
+
 if __name__ == '__main__':
     main()
