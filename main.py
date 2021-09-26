@@ -44,7 +44,7 @@ def main():
                 print("### Running query ###")
                 print(f"[!] Query id - {query_result.query_id}")
                 print(f"[!] Running query ### - {query}")
-                json_results[query_result.query_id] = query_result.fetch_all()
+                json_results[query_result.query_id] = query_result.fetch_results_sync()
 
     utils.set_github_action_output('queries_results', json.dumps(json_results))
 
