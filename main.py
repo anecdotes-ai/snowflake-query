@@ -27,19 +27,27 @@ def main():
         con.set_db_warehouse(warehouse)
 
         query_results = []
-        for query in queries_list:
-            query_result = con.query(query)
-            query_results.append(query_result)
-            print("### Running query ###")
-            print(f"[!] Query id - {query_result.query_id}")
-            print(f"[!] Running query ### - {query}")
-
+        # default, run all queries async
         if not sync:
+            for query in queries_list:
+                query_result = con.query(query)
+                query_results.append(query_result)
+                print("### Running query ###")
+                print(f"[!] Query id - {query_result.query_id}")
+                print(f"[!] Running query ### - {query}")
             json_results = asyncio.run(utils.gather_all_results(query_results))
+        # o/w, run them sync
         else:
-            json_results = utils.gather_all_results_sync(query_results)
+            json_results = {}
+            for query in queries_list:
+                query_result = con.query(query)
+                print("### Running query ###")
+                print(f"[!] Query id - {query_result.query_id}")
+                print(f"[!] Running query ### - {query}")
+                json_results[query_result.query_id] = query_result.fetch_all()
 
     utils.set_github_action_output('queries_results', json.dumps(json_results))
-    
+
+
 if __name__ == '__main__':
     main()

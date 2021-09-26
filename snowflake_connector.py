@@ -65,7 +65,3 @@ class QueryResult:
             await asyncio.sleep(0.1)
 
         return self._fetch_results()
-
-    def fetch_results_sync(self):
-        self.cursor.get_results_from_sfqid(self.query_id)
-        return self.cursor.fetchall()
