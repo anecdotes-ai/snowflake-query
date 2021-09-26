@@ -9,6 +9,7 @@ from snowflake_connector import SnowflakeConnector
 
 def main():
     load_dotenv() # only on local run
+    print(os.environ)
     queries_list = os.environ['INPUT_QUERIES'].split(';')
     sync = os.environ.get("INPUT_SYNC", False)
     warehouse = os.environ['INPUT_SNOWFLAKE_WAREHOUSE']
