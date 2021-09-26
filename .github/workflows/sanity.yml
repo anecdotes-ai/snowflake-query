@@ -15,7 +15,7 @@ jobs:
         with:
           snowflake_account: ${{ secrets.SNOWFLAKE_ACCOUNT }}
           snowflake_warehouse: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
-          snowflake_username: ${{ secrets.SNOWFLAKE_USER }}
+          snowflake_username: ${{ secrets.SNOWFLAKE_USERNAME }}
           snowflake_password: ${{ secrets.SNOWFLAKE_PASSWORD }}
           queries: 'call system$wait(1);
                     select CURRENT_VERSION();
@@ -45,7 +45,7 @@ jobs:
         with:
           snowflake_account: ${{ secrets.SNOWFLAKE_ACCOUNT }}
           snowflake_warehouse: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
-          snowflake_username: ${{ secrets.SNOWFLAKE_USER }}
+          snowflake_username: ${{ secrets.SNOWFLAKE_USERNAME }}
           snowflake_password: ${{ secrets.SNOWFLAKE_PASSWORD }}
           queries: 'call system$wait(${{matrix.sleep}})'
 
