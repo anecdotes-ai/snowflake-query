@@ -15,6 +15,7 @@ This github action runs SQL queries list in Snowflake DB, which its access confi
 - `snowflake_role` (optional) - Set a role for the user.
 - `queries` - SQL queries to execute **asynchronously and independently**.
   - May contain multiple queries, seperated by ';'
+  - Don't use ';' with the last query.
   - If you need to contain a single-quote in one or more queries, escape it with another single-quote.
 
 ## Output
