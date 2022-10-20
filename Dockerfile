@@ -16,6 +16,8 @@ RUN pip install -r ${APP_DIR}/requirements.txt
 
 # copy app files
 COPY . ./
-
+RUN useradd -ms /bin/bash anecdotes
+RUN chown -R anecdotes:anecdotes /app
+USER anecdotes
 # command to run in container start
 CMD python ${APP_DIR}/main.py
