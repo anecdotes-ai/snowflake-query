@@ -1,31 +1,22 @@
-# Generated on: Python 3.8.3
-# With §ake-connector-python version: 2.3.4
-asn1crypto==1.4.0
-azure-common==1.1.25
-azure-core==1.8.2
-azure-storage-blob==12.5.0
-boto3==1.15.18
-botocore==1.18.18
-certifi==2020.6.20
-cffi==1.14.3
-chardet==3.0.4
-cryptography==2.9.2
-idna==2.10
-isodate==0.6.0
-jmespath==0.10.0
-msrest==0.6.19
-oauthlib==3.1.0
-oscrypto==1.2.1
-pycparser==2.20
-pycryptodomex==3.9.8
-PyJWT==1.7.1
-pyOpenSSL==19.1.0
-python-dateutil==2.8.1
-pytz==2020.1
-requests==2.23.0
-requests-oauthlib==1.3.0
-s3transfer==0.3.3
-six==1.15.0
-urllib3==1.25.11
-snowflake-connector-python
-python-dotenv
+asn1crypto==1.5.1 ; python_version >= "3.8" and python_version < "3.9"
+certifi==2023.7.22 ; python_version >= "3.8" and python_version < "3.9"
+cffi==1.16.0 ; python_version >= "3.8" and python_version < "3.9"
+charset-normalizer==3.3.0 ; python_version >= "3.8" and python_version < "3.9"
+cryptography==41.0.4 ; python_version >= "3.8" and python_version < "3.9"
+filelock==3.12.4 ; python_version >= "3.8" and python_version < "3.9"
+idna==3.4 ; python_version >= "3.8" and python_version < "3.9"
+oscrypto @ git+https://github.com/wbond/oscrypto.git@1547f53 ; python_version >= "3.8" and python_version < "3.9"
+packaging==23.2 ; python_version >= "3.8" and python_version < "3.9"
+platformdirs==3.11.0 ; python_version >= "3.8" and python_version < "3.9"
+pycparser==2.21 ; python_version >= "3.8" and python_version < "3.9"
+pycryptodomex==3.19.0 ; python_version >= "3.8" and python_version < "3.9"
+pyjwt==2.8.0 ; python_version >= "3.8" and python_version < "3.9"
+pyopenssl==23.2.0 ; python_version >= "3.8" and python_version < "3.9"
+python-dotenv==1.0.0 ; python_version >= "3.8" and python_version < "3.9"
+pytz==2023.3.post1 ; python_version >= "3.8" and python_version < "3.9"
+requests==2.31.0 ; python_version >= "3.8" and python_version < "3.9"
+snowflake-connector-python==3.3.0 ; python_version >= "3.8" and python_version < "3.9"
+sortedcontainers==2.4.0 ; python_version >= "3.8" and python_version < "3.9"
+tomlkit==0.12.1 ; python_version >= "3.8" and python_version < "3.9"
+typing-extensions==4.8.0 ; python_version >= "3.8" and python_version < "3.9"
+urllib3==1.26.17 ; python_version >= "3.8" and python_version < "3.9"
