@@ -1,4 +1,4 @@
-FROM python:3.8-slim
+FROM python:3.10-slim
 
 # Configure environments vars. Overriden by GitHub Actions
 ENV INPUT_SNOWFLAKE_ACCOUNT=
