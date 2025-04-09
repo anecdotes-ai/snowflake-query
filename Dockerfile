@@ -16,7 +16,8 @@ WORKDIR ${APP_DIR}
 
 # setup python environ
 COPY ./requirements.txt ${APP_DIR}
-RUN pip install -r ${APP_DIR}/requirements.txt
+RUN pip install --upgrade pip wheel && \
+    pip install -r ${APP_DIR}/requirements.txt
 
 # copy app files
 COPY . ./
