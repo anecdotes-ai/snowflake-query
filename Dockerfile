@@ -4,6 +4,13 @@ RUN apt-get update && \
     apt-get install -y git && \
     python3 -m pip install --upgrade pip
 
+# Install system dependencies for building Python packages
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    python3-dev \
+    libffi-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 # Configure environments vars. Overriden by GitHub Actions
 ENV INPUT_SNOWFLAKE_ACCOUNT=
 ENV INPUT_SNOWFLAKE_USERNAME=
