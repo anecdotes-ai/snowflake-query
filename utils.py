@@ -6,7 +6,7 @@ from snowflake_connector import QueryResult
 
 
 def set_github_action_output(var_name, value):
-    system(f'echo "::set-output name={var_name}::"{value}""')
+    system(f'echo "::set-output name={{var_name}}::"{value}""')
 
 
 async def gather_all_results(query_result_list: List[QueryResult]) -> dict:
