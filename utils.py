@@ -1,23 +1,12 @@
 import asyncio
-from os import environ
-from shlex import quote
-from subprocess import run
+from os import system
 from typing import List
 
 from snowflake_connector import QueryResult
 
 
 def set_github_action_output(var_name, value):
-    output_path = environ["GITHUB_OUTPUT"]
-
-    output_line = f"{var_name}={value}"
-    quoted_line = quote(output_line)
-    quoted_path = quote(output_path)
-
-    run(
-        ["bash", "-c", f"echo {quoted_line} >> {quoted_path}"],
-        check=True
-    )
+    system(f'echo "::set-output name={var_name}::"{value}""')
 
 
 async def gather_all_results(query_result_list: List[QueryResult]) -> dict:
