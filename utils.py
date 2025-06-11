@@ -1,11 +1,13 @@
-import os
 import asyncio
+from os import system
 from typing import List
 
 from snowflake_connector import QueryResult
 
+
 def set_github_action_output(var_name, value):
-    os.system(f'echo "::set-output name={var_name}::"{value}""')
+    system(f'echo "::set-output name={{var_name}}::"{value}""')
+
 
 async def gather_all_results(query_result_list: List[QueryResult]) -> dict:
     """
@@ -18,7 +20,7 @@ async def gather_all_results(query_result_list: List[QueryResult]) -> dict:
 
     Returns:
         str: json contains all of the results.
-    """    
+    """
     running_tasks = {asyncio.create_task(query_result.fetch_results(), name=query_result.query_id)
                                      for query_result in query_result_list}
 
