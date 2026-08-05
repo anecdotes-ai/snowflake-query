@@ -18,8 +18,10 @@ def set_github_action_output(var_name, value):
     it emitted the literal text `{var_name}`. AN-19495 (b3b62cc) had already fixed all of this;
     AN-19858 (54cc002) reintroduced it. This restores the fix.
 
-    The heredoc form is required because query results are JSON and may contain newlines, which the
-    `name=value` form cannot represent. The delimiter is random per call so a value cannot close it.
+    Uses the heredoc form rather than `name=value`. Today `main.py` json.dumps the value, so it
+    carries no real newlines and either form would work — but `name=value` silently truncates at
+    the first newline, so it would break the moment a caller passes a raw multi-line value. The
+    delimiter is a uuid4 chosen after the value is fixed, so a value cannot guess and close it.
     """
     github_output = os.environ.get("GITHUB_OUTPUT")
     if not github_output:

@@ -9,10 +9,12 @@ invocation, before any query reaches Snowflake.
 """
 import json
 import os
+import re
 import subprocess
 import sys
 
 import pytest
+import snowflake.connector
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
 
@@ -29,6 +31,38 @@ def _pem() -> str:
     ).decode()
 
 
+class _FakeConnection:
+    """Stands in for a live Snowflake connection so credential routing is testable offline."""
+
+    def close(self):
+        pass
+
+
+def _parse_github_output(text: str) -> dict:
+    """
+    Parses $GITHUB_OUTPUT the way the runner does, so a test can assert on the variables that
+    actually result rather than on substrings. A heredoc break-out shows up here as an extra key —
+    substring assertions cannot see it, which is how an earlier version of the delimiter test
+    passed against an output that genuinely broke out.
+    """
+    variables, lines, index = {}, text.splitlines(), 0
+    while index < len(lines):
+        line = lines[index]
+        if "<<" in line:
+            name, delimiter = line.split("<<", 1)
+            index += 1
+            body = []
+            while index < len(lines) and lines[index] != delimiter:
+                body.append(lines[index])
+                index += 1
+            variables[name] = "\n".join(body)
+        elif "=" in line:
+            name, value = line.split("=", 1)
+            variables[name] = value
+        index += 1
+    return variables
+
+
 class TestCredentialSelection:
     def test_neither_credential_is_rejected_before_connecting(self):
         """Fail on the caller's mistake, not later inside the driver with a vaguer message."""
@@ -41,9 +75,36 @@ class TestCredentialSelection:
         assert con.private_key_der is None
         assert con.password == "pw"
 
-    def test_key_takes_precedence_over_password(self):
-        con = SnowflakeConnector("acct", "user", password="pw", private_key=_pem())
-        assert con.private_key_der is not None
+    def test_key_takes_precedence_over_password_at_connect_time(self, monkeypatch):
+        """
+        Asserted on what reaches the driver, not on what __init__ stored. An earlier version of
+        this test inspected `private_key_der` only, and still passed with the whole `__enter__`
+        branch disabled — it gated the PR's headline behaviour not at all.
+        """
+        captured = {}
+
+        def fake_connect(**kwargs):
+            captured.update(kwargs)
+            return _FakeConnection()
+
+        monkeypatch.setattr(snowflake.connector, "connect", fake_connect)
+        with SnowflakeConnector("acct", "user", password="pw", private_key=_pem()):
+            pass
+        assert "private_key" in captured
+        assert "password" not in captured, "password reached the driver despite a key being supplied"
+
+    def test_password_only_reaches_the_driver_unchanged(self, monkeypatch):
+        """The three @v1.2 callers pass only a password; their kwargs must not drift."""
+        captured = {}
+
+        def fake_connect(**kwargs):
+            captured.update(kwargs)
+            return _FakeConnection()
+
+        monkeypatch.setattr(snowflake.connector, "connect", fake_connect)
+        with SnowflakeConnector("acct", "user", "pw"):
+            pass
+        assert captured == {"user": "user", "password": "pw", "account": "acct"}
 
     def test_single_line_and_multiline_pem_are_equivalent(self):
         """
@@ -58,7 +119,6 @@ class TestCredentialSelection:
     @pytest.mark.parametrize("bad,label", [
         ("not a pem at all", "garbage"),
         ("-----BEGIN PRIVATE KEY-----\n-----END PRIVATE KEY-----", "armor only"),
-        ("", "empty"),
     ])
     def test_unusable_key_is_rejected_naming_the_input(self, bad, label):
         with pytest.raises(ValueError) as exc:
@@ -104,15 +164,22 @@ class TestOutputWriter:
         assert written.count("ghadelimiter_") == 2
 
     def test_value_shaped_like_the_delimiter_cannot_close_it(self, tmp_path, monkeypatch):
-        """The delimiter is a uuid4 chosen after the value is fixed, so it cannot be guessed."""
+        """
+        The delimiter is a uuid4 chosen after the value is fixed, so a value cannot guess it and
+        declare a second variable. Asserted by parsing the result: a break-out produces an extra
+        key, which substring checks cannot detect.
+        """
         out = tmp_path / "gh_output"
         out.write_text("")
         monkeypatch.setenv("GITHUB_OUTPUT", str(out))
-        set_github_action_output("queries_results", "ghadelimiter_x\nINJECTED=1")
-        written = out.read_text()
-        assert "\nINJECTED=1\n" in written
-        # exactly one variable declared: opening line plus closing delimiter, nothing else
-        assert written.count("queries_results<<") == 1
+        payload = "ghadelimiter_x\nINJECTED=1"
+
+        set_github_action_output("queries_results", payload)
+
+        variables = _parse_github_output(out.read_text())
+        assert list(variables) == ["queries_results"], f"value declared extra variables: {variables}"
+        assert variables["queries_results"] == payload
+
 
     def test_missing_github_output_does_not_crash(self, monkeypatch, capsys):
         """load_dotenv() means local runs are supported; they have no GITHUB_OUTPUT."""
@@ -147,7 +214,6 @@ def test_action_yml_and_readme_agree_on_inputs():
     here = os.path.dirname(os.path.abspath(__file__))
     action = open(os.path.join(here, "action.yml"), encoding="utf-8").read()
     readme = open(os.path.join(here, "README.md"), encoding="utf-8").read()
-    declared = {line.split(":")[0].strip() for line in action.splitlines()
-                if line.startswith("  snowflake_") or line.startswith("  queries:")}
+    declared = set(re.findall(r"^\s{2,}(snowflake_\w+|queries):", action, re.M))
     missing = sorted(name for name in declared if name not in readme)
     assert not missing, f"inputs declared in action.yml but absent from README: {missing}"

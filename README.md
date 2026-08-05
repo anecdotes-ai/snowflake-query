@@ -22,7 +22,12 @@ This github action runs SQL queries list in Snowflake DB, which its access confi
     openssl genrsa 2048 | openssl pkcs8 -topk8 -inform PEM -out rsa_key.p8 -nocrypt
     openssl rsa -in rsa_key.p8 -pubout -out rsa_key.pub
     ```
-    then register the public half on the user: `ALTER USER <NAME> SET RSA_PUBLIC_KEY='<pub>'`.
+    then register the public half on the user, with the BEGIN/END lines stripped — Snowflake
+    rejects the armored form:
+    ```
+    PUB=$(grep -v 'PUBLIC KEY' rsa_key.pub | tr -d '\n')
+    # ALTER USER <NAME> SET RSA_PUBLIC_KEY='<PUB>'
+    ```
 - `snowflake_password` - Password for your DB. Still supported, but **deprecated by Snowflake for
   service users**. Supply this or `snowflake_private_key`; if both are given, the key is used and
   the password is ignored.

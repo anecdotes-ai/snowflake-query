@@ -27,7 +27,7 @@ COPY . ./
 # workflow, where Actions is enabled. So these run on every invocation, before any query reaches
 # Snowflake, and a regression fails the caller's step instead of shipping silently.
 RUN pip install --no-cache-dir pytest==7.4.4 && \
-    pytest ${APP_DIR}/test_credentials.py -q && \
+    pytest ${APP_DIR} -q && \
     pip uninstall -y pytest
 RUN useradd -ms /bin/bash anecdotes
 RUN chown -R anecdotes:anecdotes /app
