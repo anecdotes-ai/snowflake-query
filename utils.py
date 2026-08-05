@@ -1,12 +1,34 @@
 import asyncio
-from os import system
+import os
+import uuid
 from typing import List
 
 from snowflake_connector import QueryResult
 
 
 def set_github_action_output(var_name, value):
-    system(f'echo "::set-output name={{var_name}}::"{value}""')
+    """
+    Writes to $GITHUB_OUTPUT. Never through a shell.
+
+    The previous implementation interpolated `value` into an `os.system` command, so Snowflake row
+    content was evaluated by /bin/sh — a cell containing `$(...)` executed it, with the action's
+    environment in reach. That environment now holds an unencrypted private key.
+
+    `::set-output` was also disabled by GitHub in 2023, and the format string doubled its braces, so
+    it emitted the literal text `{var_name}`. AN-19495 (b3b62cc) had already fixed all of this;
+    AN-19858 (54cc002) reintroduced it. This restores the fix.
+
+    The heredoc form is required because query results are JSON and may contain newlines, which the
+    `name=value` form cannot represent. The delimiter is random per call so a value cannot close it.
+    """
+    github_output = os.environ.get("GITHUB_OUTPUT")
+    if not github_output:
+        # Local/dry runs outside Actions: no output file to write to.
+        print(f"{var_name}=<{len(str(value))} chars>")
+        return
+    delimiter = f"ghadelimiter_{uuid.uuid4()}"
+    with open(github_output, "a", encoding="utf-8") as handle:
+        handle.write(f"{var_name}<<{delimiter}\n{value}\n{delimiter}\n")
 
 
 async def gather_all_results(query_result_list: List[QueryResult]) -> dict:
