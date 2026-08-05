@@ -27,8 +27,20 @@ def set_github_action_output(var_name, value):
         print(f"{var_name}=<{len(str(value))} chars>")
         return
     delimiter = f"ghadelimiter_{uuid.uuid4()}"
-    with open(github_output, "a", encoding="utf-8") as handle:
-        handle.write(f"{var_name}<<{delimiter}\n{value}\n{delimiter}\n")
+    try:
+        with open(github_output, "a", encoding="utf-8") as handle:
+            handle.write(f"{var_name}<<{delimiter}\n{value}\n{delimiter}\n")
+    except PermissionError:
+        # actions/runner-images#10915: this image runs as USER anecdotes (uid 1000) while the
+        # runner owns GITHUB_OUTPUT as uid 1001, mode 0644. Almost certainly why AN-19858 reverted
+        # the previous file-write back to os.system.
+        #
+        # Deliberately not fatal. By the time this runs the queries have already executed —
+        # including CREATE OR REPLACE TABLE against prod in revert-from-backup — so raising here
+        # fails the step after the side effects have landed, which is worse than losing an output
+        # no caller currently reads. Loud enough to find, harmless enough not to break a revert.
+        print(f"::warning::could not write {var_name} to GITHUB_OUTPUT (permission denied; "
+              f"see actions/runner-images#10915). Queries ran; only the step output is missing.")
 
 
 async def gather_all_results(query_result_list: List[QueryResult]) -> dict:

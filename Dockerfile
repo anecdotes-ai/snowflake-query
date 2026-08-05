@@ -21,6 +21,14 @@ RUN pip install -r ${APP_DIR}/requirements.txt
 
 # copy app files
 COPY . ./
+
+# Gate the credential seam at build time. This repo's own Actions are disabled, so a workflow here
+# would never fire — but a `docker` action builds its image on the runner inside the *consumer's*
+# workflow, where Actions is enabled. So these run on every invocation, before any query reaches
+# Snowflake, and a regression fails the caller's step instead of shipping silently.
+RUN pip install --no-cache-dir pytest==7.4.4 && \
+    pytest ${APP_DIR}/test_credentials.py -q && \
+    pip uninstall -y pytest
 RUN useradd -ms /bin/bash anecdotes
 RUN chown -R anecdotes:anecdotes /app
 USER anecdotes
