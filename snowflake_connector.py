@@ -2,19 +2,62 @@ import asyncio
 
 import snowflake.connector
 
+from cryptography.hazmat.primitives import serialization
 from snowflake.connector.constants import QueryStatus
 
 class SnowflakeConnector:
-    def __init__(self, account_name: str, username: str, password: str):
+    def __init__(self, account_name: str, username: str, password: str = None, private_key: str = None):
+        """
+        Authenticates by key-pair when private_key is given, by password otherwise.
+
+        Snowflake removes password authentication for service users around October 2026, so the key
+        path is the one to prefer. Password stays supported so callers pinned to an older tag are
+        unaffected by upgrading, and so a caller can migrate its own secret independently.
+
+        Args:
+            private_key: unencrypted PKCS#8 PEM. Accepts real newlines or literal `\\n` escapes —
+                GitHub secrets are routinely stored single-line, and both spellings reach here.
+        """
+        if not private_key and not password:
+            raise ValueError(
+                "no credentials supplied: set snowflake_private_key (preferred) or snowflake_password"
+            )
         self.account_name = account_name
         self.username = username
         self.password = password
+        self.private_key_der = self._to_der(private_key) if private_key else None
+
+    @staticmethod
+    def _to_der(private_key: str) -> bytes:
+        """
+        The connector takes DER, not PEM. A parse failure is re-raised naming the cause: an
+        unadorned cryptography traceback reads as a library bug rather than a malformed secret.
+        """
+        pem = private_key.strip().replace("\\n", "\n")
+        try:
+            key = serialization.load_pem_private_key(pem.encode(), password=None)
+        except Exception as exc:
+            raise ValueError(
+                "snowflake_private_key is not a readable unencrypted PKCS#8 PEM "
+                f"({type(exc).__name__}). Expected the contents of an rsa_key.p8."
+            ) from exc
+        return key.private_bytes(
+            encoding=serialization.Encoding.DER,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption(),
+        )
 
     def __enter__(self):
-        self.con = snowflake.connector.connect(
-        user=self.username,
-        password=self.password,
-        account=self.account_name)
+        if self.private_key_der:
+            self.con = snowflake.connector.connect(
+                user=self.username,
+                private_key=self.private_key_der,
+                account=self.account_name)
+        else:
+            self.con = snowflake.connector.connect(
+                user=self.username,
+                password=self.password,
+                account=self.account_name)
 
         return self
 

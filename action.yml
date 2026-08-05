@@ -11,8 +11,13 @@ inputs:
     description: 'Username for Snowflake DB'
     required: true
   snowflake_password:
-    description: 'Password for Snowflake DB'
-    required: true
+    description: 'Password for Snowflake DB. Optional — supply this or snowflake_private_key.
+      Snowflake removes password auth for service users around October 2026; prefer the key.'
+    required: false
+  snowflake_private_key:
+    description: 'Unencrypted PKCS#8 private key (contents of rsa_key.p8) for key-pair auth.
+      Takes precedence over snowflake_password. Real newlines or literal \n escapes both work.'
+    required: false
   snowflake_account:
     description: 'Account name for Snowflake DB. Your account name is the full/entire string to the left of snowflakecomputing.com.'
     required: true
