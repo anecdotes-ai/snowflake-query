@@ -10,8 +10,28 @@ This github action runs SQL queries list in Snowflake DB, which its access confi
 
 - `snowflake_account` - Account name for Snowflake DB. Your account name is the full/entire string to the left of snowflakecomputing.com.
 - `snowflake_warehouse` - Set the warehouse context for the queries.
-- `snowflake_username`, `snowflake_password` - Credentials for your DB.
-  - It's recommended to use [Github's Secrets](https://docs.github.com/en/actions/reference/encrypted-secrets) for those arguments.
+- `snowflake_username` - The Snowflake user to authenticate as.
+- `snowflake_private_key` - Private key for key-pair authentication. **Preferred.** Snowflake is
+  removing password authentication for service users, so new callers should use this.
+  - Must be an **unencrypted PKCS#8** key — the contents of an `rsa_key.p8`. Passphrase-protected
+    keys are not supported.
+  - Accepts either real newlines or a single line with literal `\n` escapes, so it works whether
+    the secret was stored multi-line or flattened.
+  - Generate with:
+    ```
+    openssl genrsa 2048 | openssl pkcs8 -topk8 -inform PEM -out rsa_key.p8 -nocrypt
+    openssl rsa -in rsa_key.p8 -pubout -out rsa_key.pub
+    ```
+    then register the public half on the user, with the BEGIN/END lines stripped — Snowflake
+    rejects the armored form:
+    ```
+    PUB=$(grep -v 'PUBLIC KEY' rsa_key.pub | tr -d '\n')
+    # ALTER USER <NAME> SET RSA_PUBLIC_KEY='<PUB>'
+    ```
+- `snowflake_password` - Password for your DB. Still supported, but **deprecated by Snowflake for
+  service users**. Supply this or `snowflake_private_key`; if both are given, the key is used and
+  the password is ignored.
+  - It's recommended to use [Github's Secrets](https://docs.github.com/en/actions/reference/encrypted-secrets) for credential arguments.
 - `snowflake_role` (optional) - Set a role for the user.
 - `queries` - SQL queries to execute **asynchronously and independently**.
   - May contain multiple queries, seperated by ';'
@@ -37,7 +57,8 @@ steps:
         snowflake_account: ${{ secrets.SNOWFLAKE_ACCOUNT }}
         snowflake_warehouse: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
         snowflake_username: ${{ secrets.SNOWFLAKE_USER }}
-        snowflake_password: ${{ secrets.SNOWFLAKE_PASSWORD }}
+        # key-pair auth — preferred; swap snowflake_password for this
+        snowflake_private_key: ${{ secrets.SNOWFLAKE_PRIVATE_KEY }}
         queries: 'call system$wait(5);
                   select CURRENT_VERSION();
                   select * from "<TABLE_NAME>" where <column_name>=''<value>'''

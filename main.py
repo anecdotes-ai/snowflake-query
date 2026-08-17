@@ -9,16 +9,23 @@ from snowflake_connector import SnowflakeConnector
 
 def main():
     load_dotenv() # only on local run
-    print(os.environ)
     queries_list = os.environ['INPUT_QUERIES'].split(';')
     sync = os.environ.get("INPUT_SYNC", False)
     warehouse = os.environ['INPUT_SNOWFLAKE_WAREHOUSE']
     snowflake_account = os.environ['INPUT_SNOWFLAKE_ACCOUNT']
     snowflake_username = os.environ['INPUT_SNOWFLAKE_USERNAME']
-    snowflake_password = os.environ['INPUT_SNOWFLAKE_PASSWORD']
+    # Both optional at this layer; the connector rejects the neither-supplied case. Password is no
+    # longer a required action input, so an unguarded subscript would break key-pair callers.
+    snowflake_password = os.environ.get('INPUT_SNOWFLAKE_PASSWORD', '')
+    snowflake_private_key = os.environ.get('INPUT_SNOWFLAKE_PRIVATE_KEY', '')
     snowflake_role = os.environ.get('INPUT_SNOWFLAKE_ROLE', '')
-    
-    with SnowflakeConnector(snowflake_account, snowflake_username, snowflake_password) as con:
+
+    print(f"Authenticating as {snowflake_username} by "
+          f"{'key-pair' if snowflake_private_key else 'password'}")
+
+    with SnowflakeConnector(snowflake_account, snowflake_username,
+                            password=snowflake_password,
+                            private_key=snowflake_private_key) as con:
         try:
             if snowflake_role != '':
                 con.set_user_role(snowflake_role)

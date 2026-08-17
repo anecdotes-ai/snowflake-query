@@ -1,12 +1,48 @@
 import asyncio
-from os import system
+import os
+import uuid
 from typing import List
 
 from snowflake_connector import QueryResult
 
 
 def set_github_action_output(var_name, value):
-    system(f'echo "::set-output name={{var_name}}::"{value}""')
+    """
+    Writes to $GITHUB_OUTPUT. Never through a shell.
+
+    The previous implementation interpolated `value` into an `os.system` command, so Snowflake row
+    content was evaluated by /bin/sh — a cell containing `$(...)` executed it, with the action's
+    environment in reach. That environment now holds an unencrypted private key.
+
+    `::set-output` was also disabled by GitHub in 2023, and the format string doubled its braces, so
+    it emitted the literal text `{var_name}`. AN-19495 (b3b62cc) had already fixed all of this;
+    AN-19858 (54cc002) reintroduced it. This restores the fix.
+
+    Uses the heredoc form rather than `name=value`. Today `main.py` json.dumps the value, so it
+    carries no real newlines and either form would work — but `name=value` silently truncates at
+    the first newline, so it would break the moment a caller passes a raw multi-line value. The
+    delimiter is a uuid4 chosen after the value is fixed, so a value cannot guess and close it.
+    """
+    github_output = os.environ.get("GITHUB_OUTPUT")
+    if not github_output:
+        # Local/dry runs outside Actions: no output file to write to.
+        print(f"{var_name}=<{len(str(value))} chars>")
+        return
+    delimiter = f"ghadelimiter_{uuid.uuid4()}"
+    try:
+        with open(github_output, "a", encoding="utf-8") as handle:
+            handle.write(f"{var_name}<<{delimiter}\n{value}\n{delimiter}\n")
+    except PermissionError:
+        # actions/runner-images#10915: this image runs as USER anecdotes (uid 1000) while the
+        # runner owns GITHUB_OUTPUT as uid 1001, mode 0644. Almost certainly why AN-19858 reverted
+        # the previous file-write back to os.system.
+        #
+        # Deliberately not fatal. By the time this runs the queries have already executed —
+        # including CREATE OR REPLACE TABLE against prod in revert-from-backup — so raising here
+        # fails the step after the side effects have landed, which is worse than losing an output
+        # no caller currently reads. Loud enough to find, harmless enough not to break a revert.
+        print(f"::warning::could not write {var_name} to GITHUB_OUTPUT (permission denied; "
+              f"see actions/runner-images#10915). Queries ran; only the step output is missing.")
 
 
 async def gather_all_results(query_result_list: List[QueryResult]) -> dict:
